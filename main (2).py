@@ -9,7 +9,8 @@ TEMPLATE = {
     "resep": "resep.csv",
     "dokter": "dokter.csv",
     "admin": "admin.csv",
-    "pengguna": "pengguna.csv"
+    "pengguna": "pengguna.csv",
+    "riwayat": "riwayat.csv",
 }
 
 def init_csv():
@@ -31,6 +32,8 @@ def init_csv():
                     writer.writerow(["Email", "Password"])
                 elif key == "pengguna":
                     writer.writerow(["Email", "Password"])
+                elif key == "riwayat":
+                    writer.writerow(["Nama", "Keluhan", "Obat"])
 
 def clear():
     os.system('cls'if os.name =='nt'else "clear")
@@ -322,15 +325,41 @@ def hapus_pasien():
 def antrian():
     clear()
     print("="*50)
-    print("|"," "*10,"ANTRIAN PASIEN"," "*20,"|")
+    print("|", " " * 10, "CARI ANTRIAN PASIEN", " " * 15, "|")
     print("="*50)
-    data = pd.read_csv('antrian.csv')
-    # Mengatur indeks mulai dari 1
-    data.index = range(1, len(data) + 1)
-    # Menampilkan data
-    print(data)
-    print("\n"+"="*50)
-    kembali_keAdmin()  
+    
+    try:
+        # Membaca file antrian.csv
+        data = pd.read_csv(TEMPLATE["antrian"])
+        data.index = range(1, len(data) + 1)  # Mengatur indeks mulai dari 1
+        print(data)
+        
+        # Memastikan file tidak kosong
+        if data.empty:
+            print("Antrian kosong.")
+        else:
+            # Menanyakan nama pasien yang ingin dicari
+            nama = input("Masukkan nama pasien: ").strip()
+            
+            # Mencari data berdasarkan nama
+            hasil_cari = data[data['Nama Pasien'].str.contains(nama, case=False, na=False)]
+            
+            # Menampilkan hasil pencarian
+            if not hasil_cari.empty:
+                print("\nHasil pencarian:")
+                print(hasil_cari)
+            else:
+                print(f"\nTidak ditemukan antrian untuk nama: {nama}")
+    
+    except FileNotFoundError:
+        print("File antrian.csv tidak ditemukan.")
+    except Exception as e:
+        print(f"Terjadi kesalahan: {e}")
+    
+    kembali_kePengguna()
+    
+    
+
 
 
 def riwayat_penyakit():
@@ -338,14 +367,13 @@ def riwayat_penyakit():
     print("=" * 50)
     print("|", " " * 10, "RIWAYAT PENYAKIT PASIEN", " " * 15, "|")
     print("=" * 50)
-    
     try:
         # Memuat data dari pasien.csv
-        data = pd.read_csv(TEMPLATE["pasien"])
+        data = pd.read_csv(TEMPLATE["riwayat"])
         data.index = range(1, len(data) + 1)  # Mengatur indeks mulai dari 1
         
         # Menampilkan data riwayat penyakit
-        print(data[['Nama', 'Poli', 'Keluhan']])  # Menampilkan nama, poli, dan keluhan
+        print(data[['Nama', 'Keluhan', 'Obat']])  # Menampilkan nama, poli, dan keluhan
         print("=" * 50)
         
         kembali_kePengguna()  # Kembali ke menu pengguna
@@ -468,6 +496,10 @@ def tambah_pasien1():
         writer = csv.writer(f)
         writer.writerow([nama, obat])
 
+    # Menyimpan resep obat berdasarkan keluhan
+    with open(TEMPLATE["riwayat"], "a", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([nama, keluhan, obat])
     print("Pasien berhasil ditambahkan!")
     kembali_keAdmin()
 
@@ -578,10 +610,15 @@ def tambah_pasien2():
         writer = csv.writer(f)
         writer.writerow([poli_name, nama])
 
+
     # Menyimpan resep obat berdasarkan keluhan
     with open(TEMPLATE["resep"], "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([nama, obat])
+
+    with open(TEMPLATE["riwayat"], "a", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([nama, keluhan, obat])
 
     print("Pasien berhasil ditambahkan!")
     kembali_kePengguna()
@@ -823,8 +860,9 @@ def menu_pengguna():
     print("="*110)
     print("|1. DAFTAR PASIEN"," "*90,"|")
     print("|2. RIWAYAT PENYAKIT"," "*87,"|")
-    print("|3. KEMBALI"," "*96,"|")
-    print("|4. KELUAR"," "*97,"|")
+    print("|3. LIHAT ANTRIAN"," "*87,"|")
+    print("|4. KEMBALI"," "*96,"|")
+    print("|5. KELUAR"," "*97,"|")
     print("="*110)
     print("\nSilahkan pilih menu: ")
     opsi_menu = (input("Pilih menu (1/2/3/4): "))
@@ -834,8 +872,10 @@ def menu_pengguna():
         elif i == '2':  
             riwayat_penyakit()       
         elif i == '3':  
-            menu()        
-        elif i == "4": 
+            antrian() 
+        elif i == '4':
+            menu()       
+        elif i == "5": 
                 break
         else:
             menu_pengguna()
