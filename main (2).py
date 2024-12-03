@@ -333,6 +333,29 @@ def antrian():
     kembali_keAdmin()  
 
 
+def riwayat_penyakit():
+    clear()
+    print("=" * 50)
+    print("|", " " * 10, "RIWAYAT PENYAKIT PASIEN", " " * 15, "|")
+    print("=" * 50)
+    
+    try:
+        # Memuat data dari pasien.csv
+        data = pd.read_csv(TEMPLATE["pasien"])
+        data.index = range(1, len(data) + 1)  # Mengatur indeks mulai dari 1
+        
+        # Menampilkan data riwayat penyakit
+        print(data[['Nama', 'Poli', 'Keluhan']])  # Menampilkan nama, poli, dan keluhan
+        print("=" * 50)
+        
+        kembali_kePengguna()  # Kembali ke menu pengguna
+    except FileNotFoundError:
+        print("File pasien.csv tidak ditemukan.")
+        kembali_kePengguna()
+    except Exception as e:
+        print(f"Terjadi kesalahan: {e}")
+        kembali_kePengguna()
+
 ###tambah pasien dari admin###
 def tambah_pasien1():
     clear()
@@ -783,7 +806,7 @@ def menu_admin():
         elif i == "3":
             antrian()
         elif i =="4":
-            print("riwayat pasien")
+            riwayat_penyakit()
         elif i == "5":
             menu()
         elif i == "6": 
@@ -809,7 +832,7 @@ def menu_pengguna():
         if i == '1':
             tambah_pasien2()
         elif i == '2':  
-            print("CONTINUE.")        
+            riwayat_penyakit()       
         elif i == '3':  
             menu()        
         elif i == "4": 
