@@ -10,7 +10,7 @@ TEMPLATE = {
     "dokter": "dokter.csv",
     "admin": "admin.csv",
     "pengguna": "pengguna.csv",
-    "riwayat": "riwayat.csv",
+    "riwayat": "riwayat.csv"
 }
 
 def init_csv():
@@ -142,7 +142,6 @@ def daftar_admin():
         # Memuat data dari admin.csv
         data = pd.read_csv(TEMPLATE["admin"])
 
-
         # Input email dan password baru
         email = input("Masukkan email baru: ")
         if email in data["Email"].values:
@@ -207,9 +206,8 @@ def admin():
                     next(reader)  # Lewati header lagi
 
             # Jika gagal 3 kali, panggil fungsi daftar_admin
-            print("\nAnda telah gagal login sebanyak 3 kali.")
-            print("Silakan daftar admin baru.")
-            daftar_admin()
+            print("\nAnda bukan admin.")
+            kembali_keMenu()
 
     except FileNotFoundError:
         print("File admin.csv tidak ditemukan. Silahkan buat file admin.csv terlebih dahulu.")
@@ -218,9 +216,9 @@ def admin():
 
 def edit_pasien():
     clear()
-    print("="*84)
-    print("|"," "*30,"UPDATE DATA PASIEN"," "*30,"|")
-    print("="*84)
+    print("="*100)
+    print("|"," "*38,"UPDATE DATA PASIEN"," "*38,"|")
+    print("="*100)
     try:
         # Memuat data dari pasien.csv
         data = pd.read_csv(TEMPLATE["pasien"])
@@ -275,16 +273,37 @@ def edit_pasien():
         antrian_data['Nama Pasien'] = antrian_data['Nama Pasien'].replace(nama_lama, nama)
         antrian_data.to_csv(TEMPLATE["antrian"], index=False)
 
+        # Menambahkan data yang diubah ke riwayat.csv
+        riwayat_entry = {
+            "Nama": nama,
+            "Keluhan": keluhan,
+            "Obat": obat,
+        }
+
+        try:
+            # Membuka riwayat.csv dalam mode append
+            riwayat_df = pd.DataFrame([riwayat_entry])  # Membuat DataFrame dari data baru
+            riwayat_df.to_csv(
+                TEMPLATE["riwayat"], 
+                mode='a', 
+                index=False, 
+                header=not pd.io.common.file_exists(TEMPLATE["riwayat"])  # Menambahkan header jika file belum ada
+            )
+        except Exception as e:
+            print(f"Terjadi kesalahan saat menambahkan ke riwayat.csv: {e}")
+
         print("\nData pasien berhasil diperbarui!")
     except FileNotFoundError:
         print("File pasien.csv tidak ditemukan.")
+
     kembali_keAdmin()
 
 
 def hapus_pasien():
+    clear()
     try:
             print("\n"+"="*100)
-            print("|", " "*40,"DELETE PASIEN"," "*39, "|")
+            print("|", " "*40,"DELETE PASIEN"," "*40, "|")
             print("="*100)
             data = pd.read_csv(TEMPLATE["pasien"])
             data.index = range(1, len(data) + 1)  # Mengatur indeks mulai dari 1
@@ -322,10 +341,11 @@ def hapus_pasien():
             print(f"Terjadi kesalahan: {e}")
     kembali_keAdmin()
 
-def antrian():
+#########lihat antrian dari admin##############
+def antrian_dari_admin():
     clear()
     print("="*50)
-    print("|", " " * 10, "CARI ANTRIAN PASIEN", " " * 15, "|")
+    print("|", " " * 15, "ANTRIAN PASIEN", " " * 15, "|")
     print("="*50)
     
     try:
@@ -335,6 +355,51 @@ def antrian():
         print(data)
         
         # Memastikan file tidak kosong
+        print("\n")
+        print("="*50)
+        print("|", " " * 16, "CARI PASIEN", " " * 17, "|")
+        print("="*50)
+        if data.empty:
+            print("Antrian kosong.")
+        else:
+            # Menanyakan nama pasien yang ingin dicari
+            nama = input("Masukkan nama pasien: ").strip()
+            
+            # Mencari data berdasarkan nama
+            hasil_cari = data[data['Nama Pasien'].str.contains(nama, case=False, na=False)]
+            
+            # Menampilkan hasil pencarian
+            if not hasil_cari.empty:
+                print("\nHasil pencarian:")
+                print(hasil_cari)
+            else:
+                print(f"\nTidak ditemukan antrian untuk nama: {nama}")
+    
+    except FileNotFoundError:
+        print("File antrian.csv tidak ditemukan.")
+    except Exception as e:
+        print(f"Terjadi kesalahan: {e}")
+    
+    kembali_keAdmin()
+
+#########lihat antrian dari pengguna##############
+def antrian_dari_pengguna():
+    clear()
+    print("="*50)
+    print("|", " " * 15, "ANTRIAN PASIEN", " " * 15, "|")
+    print("="*50)
+    
+    try:
+        # Membaca file antrian.csv
+        data = pd.read_csv(TEMPLATE["antrian"])
+        data.index = range(1, len(data) + 1)  # Mengatur indeks mulai dari 1
+        print(data)
+        
+        # Memastikan file tidak kosong
+        print("\n")
+        print("="*50)
+        print("|", " " * 16, "CARI PASIEN", " " * 17, "|")
+        print("="*50)
         if data.empty:
             print("Antrian kosong.")
         else:
@@ -358,14 +423,11 @@ def antrian():
     
     kembali_kePengguna()
     
-    
-
-
 
 def riwayat_penyakit():
     clear()
     print("=" * 50)
-    print("|", " " * 10, "RIWAYAT PENYAKIT PASIEN", " " * 15, "|")
+    print("|", " " * 10, "RIWAYAT PENYAKIT PASIEN", " " * 11, "|")
     print("=" * 50)
     try:
         # Memuat data dari pasien.csv
@@ -376,13 +438,13 @@ def riwayat_penyakit():
         print(data[['Nama', 'Keluhan', 'Obat']])  # Menampilkan nama, poli, dan keluhan
         print("=" * 50)
         
-        kembali_kePengguna()  # Kembali ke menu pengguna
+        kembali_keAdmin()  # Kembali ke menu pengguna
     except FileNotFoundError:
         print("File pasien.csv tidak ditemukan.")
-        kembali_kePengguna()
+        kembali_keAdmin()
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
-        kembali_kePengguna()
+        kembali_keAdmin()
 
 ###tambah pasien dari admin###
 def tambah_pasien1():
@@ -420,7 +482,6 @@ def tambah_pasien1():
         else:
             print("Pilihan poli tidak valid!")
 
-    clear()
     print(f"=====POLI {poli_name.upper()}=====")
     for i, keluhan_item in enumerate(keluhan_list, start=1):
         print(f"{i}. {keluhan_item}")
@@ -458,7 +519,6 @@ def tambah_pasien1():
 
     ruang = "Tidak membutuhkan rawat inap"
     if rawat_inap == "1":
-        clear()
         daftar_ruang = ["Ruang A", "Ruang B", "Ruang C", "Ruang D"]
         print("===== DAFTAR RUANG RAWAT INAP =====")
         for i, r in enumerate(daftar_ruang, start=1):
@@ -539,7 +599,6 @@ def tambah_pasien2():
         else:
             print("Pilihan poli tidak valid!")
 
-    clear()
     print(f"=====POLI {poli_name.upper()}=====")
     for i, keluhan_item in enumerate(keluhan_list, start=1):
         print(f"{i}. {keluhan_item}")
@@ -577,7 +636,6 @@ def tambah_pasien2():
 
     ruang = "Tidak membutuhkan rawat inap"
     if rawat_inap == "1":
-        clear()
         daftar_ruang = ["Ruang A", "Ruang B", "Ruang C", "Ruang D"]
         print("===== DAFTAR RUANG RAWAT INAP =====")
         for i, r in enumerate(daftar_ruang, start=1):
@@ -600,7 +658,7 @@ def tambah_pasien2():
     else:
         print("Pilihan tidak valid, dianggap tidak membutuhkan rawat inap.")
 
-    # Menambahkan ke file CSV
+    # Menambahkan ke file pasien.CSV
     with open(TEMPLATE["pasien"], "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([nama, umur, alamat, poli_name, keluhan, ruang, obat])
@@ -689,7 +747,7 @@ def daftar_dokter():
     else:
         print("Pilihan tidak valid!")
         daftar_dokter()
-        # dokter()
+        
 
 def tambah_dokter():
     clear()
@@ -827,13 +885,14 @@ def menu_admin():
     print("="*110)
     print("|1. DAFTAR PASIEN"," "*90,"|")
     print("|2. DATA DOKTER"," "*92,"|")
-    print("|3. ANTRIAN"," "*96,"|")
+    print("|3. ANTRIAN PASIEN"," "*89,"|")
     print("|4. RIWAYAT PASIEN"," "*89,"|")
-    print("|5. KEMBALI", " "*96, "|")
-    print("|6. KELUAR"," "*97,"|")
+    print("|5. DAFTAR ADMIN BARU"," "*86,"|")
+    print("|6. KEMBALI", " "*96, "|")
+    print("|7. KELUAR"," "*97,"|")
     print("="*110)
     # print("\nSilahkan pilih menu: ")
-    opsi_menu = (input("Pilih menu (1/2/3/4/5/6): "))
+    opsi_menu = (input("Pilih menu (1/2/3/4/5/6/7): "))
     for i in opsi_menu:
         # os.system("cls")
         if i == '1':
@@ -841,12 +900,14 @@ def menu_admin():
         elif i == '2':  
             daftar_dokter()        
         elif i == "3":
-            antrian()
+            antrian_dari_admin()
         elif i =="4":
             riwayat_penyakit()
         elif i == "5":
+            daftar_admin()
+        elif i == "6":
             menu()
-        elif i == "6": 
+        elif i == "7": 
             break
         else:
             menu_admin()
@@ -859,23 +920,20 @@ def menu_pengguna():
     print("|"," "*46,"MENU PENGGUNA"," "*45,"|")
     print("="*110)
     print("|1. DAFTAR PASIEN"," "*90,"|")
-    print("|2. RIWAYAT PENYAKIT"," "*87,"|")
-    print("|3. LIHAT ANTRIAN"," "*87,"|")
-    print("|4. KEMBALI"," "*96,"|")
-    print("|5. KELUAR"," "*97,"|")
+    print("|2. LIHAT ANTRIAN"," "*90,"|")
+    print("|3. KEMBALI"," "*96,"|")
+    print("|4. KELUAR"," "*97,"|") 
     print("="*110)
     print("\nSilahkan pilih menu: ")
-    opsi_menu = (input("Pilih menu (1/2/3/4): "))
+    opsi_menu = (input("Pilih menu (1/2/3/4/5): "))
     for i in opsi_menu:
         if i == '1':
-            tambah_pasien2()
+            tambah_pasien2()      
         elif i == '2':  
-            riwayat_penyakit()       
-        elif i == '3':  
-            antrian() 
-        elif i == '4':
+            antrian_dari_pengguna() 
+        elif i == '3':
             menu()       
-        elif i == "5": 
+        elif i == "4": 
                 break
         else:
             menu_pengguna()
@@ -888,23 +946,20 @@ def menu():
     print("="*110)
     print("|1. LOGIN ADMIN"," "*92,"|")
     print("|2. LOGIN PENGGUNA"," "*89,"|")
-    print("|3. DAFTAR ADMIN"," "*91,"|")
-    print("|4. DAFTAR PENGGUNA"," "*88,"|")
-    print("|5. KELUAR"," "*97,"|")
+    print("|3. DAFTAR PENGGUNA BARU"," "*83,"|")
+    print("|4. KELUAR"," "*97,"|")
     print("="*110)
     print("\nSilahkan pilih menu: ")
-    opsi_menu = (input("Pilih menu (1/2/3/4/5): "))
+    opsi_menu = (input("Pilih menu (1/2/3/4): "))
     for i in opsi_menu:
         # os.system("cls")
         if i == '1':
             admin()
         elif i == '2':  
             pengguna()
-        elif i == '3':
-            daftar_admin()
-        elif i == "4":
+        elif i == "3":
             daftar_pengguna()        
-        elif i == "5": 
+        elif i == "4": 
                 break
         else:
             menu()
