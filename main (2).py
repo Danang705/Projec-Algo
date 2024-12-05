@@ -794,9 +794,9 @@ def tambah_dokter():
 
 def edit_dokter():
     clear()
-    print("\n"+"="*100)
-    print("|", " "*40,"UPDATE DOKTER"," "*40, "|")
-    print("="*100)
+    print("\n" + "=" * 100)
+    print("|", " " * 40, "UPDATE DOKTER", " " * 40, "|")
+    print("=" * 100)
     try:
         data = pd.read_csv(TEMPLATE["dokter"])
         data.index = range(1, len(data) + 1)  # Mengatur indeks mulai dari 1
@@ -816,10 +816,29 @@ def edit_dokter():
         print("\nData dokter yang dipilih:")
         print(data.loc[pilih_dokter])
 
-        # Input data baru
-        print("\nMasukkan data baru (kosongkan jika tidak ingin mengubah):")
-        poli = input(f"Poli ({data.loc[pilih_dokter, 'Poli']}): ") or data.loc[pilih_dokter, 'Poli']
-        dokter = input(f"Dokter ({data.loc[pilih_dokter, 'Dokter']}): ") or data.loc[pilih_dokter, 'Dokter']
+        # Menampilkan daftar poli untuk dipilih
+        daftar_poli = ["GIGI", "MATA", "THT", "UMUM"]
+        print("\nPilih Poli Baru (kosongkan jika tidak ingin mengubah):")
+        for index, poli in enumerate(daftar_poli, start=1):
+            print(f"{index}. {poli}")
+
+        while True:
+            try:
+                pilihan = input(f"Masukkan nomor poli (1/2/3/4, default: {data.loc[pilih_dokter, 'Poli']}): ")
+                if not pilihan:  # Tidak mengubah poli
+                    poli = data.loc[pilih_dokter, 'Poli']
+                    break
+                pilihan = int(pilihan) - 1
+                if 0 <= pilihan < len(daftar_poli):
+                    poli = daftar_poli[pilihan]
+                    break
+                else:
+                    print("Pilihan tidak valid, coba lagi!")
+            except ValueError:
+                print("Masukkan angka yang valid!")
+
+        # Input nama dokter baru
+        dokter = input(f"Nama Dokter ({data.loc[pilih_dokter, 'Dokter']}): ") or data.loc[pilih_dokter, 'Dokter']
 
         # Memperbarui data
         data.loc[pilih_dokter] = [poli, dokter]
@@ -832,6 +851,7 @@ def edit_dokter():
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
     kembali_keAdmin()
+
 
 def hapus_dokter():
     clear()
