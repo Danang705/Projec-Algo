@@ -449,9 +449,9 @@ def riwayat_penyakit():
 ###tambah pasien dari admin###
 def tambah_pasien1():
     clear()
-    print("="*54)
-    print("|"," "*15,"TAMBAH PASIEN", " "*20,"|")
-    print("="*54)
+    print("=" * 54)
+    print("|", " " * 15, "TAMBAH PASIEN", " " * 20, "|")
+    print("=" * 54)
     nama = input("Masukkan nama: ")
     while True:
         try:
@@ -474,26 +474,6 @@ def tambah_pasien1():
         "4": ("UMUM", ["Demam", "Flu", "Diare"]),
     }
 
-    while True:
-        poli = input("Pilih poli (1/2/3/4): ")
-        if poli in poli_dict:
-            poli_name, keluhan_list = poli_dict[poli]
-            break
-        else:
-            print("Pilihan poli tidak valid!")
-
-    print(f"=====POLI {poli_name.upper()}=====")
-    for i, keluhan_item in enumerate(keluhan_list, start=1):
-        print(f"{i}. {keluhan_item}")
-
-    while True:
-        try:
-            pilih_keluhan = int(input("Masukkan pilihan keluhan (1/2/3): ")) - 1
-            keluhan = keluhan_list[pilih_keluhan]
-            break
-        except (ValueError, IndexError):
-            print("Pilihan harus benar!")
-
     obat_resep = {
         "Gigi berlubang": "Ibuprofen",
         "Sariawan": "Antibiotik",
@@ -509,9 +489,47 @@ def tambah_pasien1():
         "Diare": "Oralit",
     }
 
+    while True:
+        poli = input("Pilih poli (1/2/3/4): ")
+        if poli in poli_dict:
+            poli_name, keluhan_list = poli_dict[poli]
+            # Periksa ketersediaan dokter di poli tersebut
+            try:
+                dokter_data = pd.read_csv(TEMPLATE["dokter"])
+            except FileNotFoundError:
+                print("File dokter.csv tidak ditemukan.")
+                return
+
+            if not dokter_data[dokter_data["Poli"] == poli_name].empty:
+                break
+            else:
+                print(f"Dokter pada {poli_name} tidak tersedia.")
+                print("1. Pilih poli lain")
+                print("2. Batalkan penambahan pasien")
+                opsi = input("Pilih opsi (1/2): ")
+                if opsi == "1":
+                    continue
+                elif opsi == "2":
+                    return  # Kembali tanpa menambahkan pasien
+                else:
+                    print("Pilihan tidak valid!")
+        else:
+            print("Pilihan poli tidak valid!")
+
+    print(f"=====POLI {poli_name.upper()}=====")
+    for i, keluhan_item in enumerate(keluhan_list, start=1):
+        print(f"{i}. {keluhan_item}")
+
+    while True:
+        try:
+            pilih_keluhan = int(input("Masukkan pilihan keluhan (1/2/3): ")) - 1
+            keluhan = keluhan_list[pilih_keluhan]
+            break
+        except (ValueError, IndexError):
+            print("Pilihan harus benar!")
+
     obat = obat_resep.get(keluhan, "Tidak diketahui")
 
-    # Menanyakan apakah pasien membutuhkan rawat inap
     print("\nApakah pasien membutuhkan rawat inap?")
     print("1. Ya")
     print("2. Tidak")
@@ -531,44 +549,32 @@ def tambah_pasien1():
                 break
             except (ValueError, IndexError):
                 print("Pilihan tidak valid!")
-
-        # Menyimpan informasi ke ruang.csv
-        with open(TEMPLATE["ruang"], "a", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([ruang, nama])
-    elif rawat_inap == "2":
-        ruang = "Tidak membutuhkan rawat inap"
-    else:
-        print("Pilihan tidak valid, dianggap tidak membutuhkan rawat inap.")
 
     # Menambahkan ke file CSV
-    with open(TEMPLATE["pasien"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([nama, umur, alamat, poli_name, keluhan, ruang, obat])
+    try:
+        with open(TEMPLATE["pasien"], "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([nama, umur, alamat, poli_name, keluhan, ruang, obat])
 
-    # Menambahkan pasien ke antrean
-    with open(TEMPLATE["antrian"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([poli_name, nama])
+        with open(TEMPLATE["antrian"], "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([poli_name, nama])
 
-    # Menyimpan resep obat berdasarkan keluhan
-    with open(TEMPLATE["resep"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([nama, obat])
+        with open(TEMPLATE["resep"], "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([nama, obat])
 
-    # Menyimpan resep obat berdasarkan keluhan
-    with open(TEMPLATE["riwayat"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([nama, keluhan, obat])
-    print("Pasien berhasil ditambahkan!")
+        print("Pasien berhasil ditambahkan!")
+    except Exception as e:
+        print(f"Terjadi kesalahan saat menyimpan data: {e}")
+
     kembali_keAdmin()
 
-    ###tambah pasien dari pengguna###
 def tambah_pasien2():
     clear()
-    print("="*54)
-    print("|"," "*15,"TAMBAH PASIEN", " "*20,"|")
-    print("="*54)
+    print("=" * 54)
+    print("|", " " * 15, "TAMBAH PASIEN", " " * 20, "|")
+    print("=" * 54)
     nama = input("Masukkan nama: ")
     while True:
         try:
@@ -591,26 +597,6 @@ def tambah_pasien2():
         "4": ("UMUM", ["Demam", "Flu", "Diare"]),
     }
 
-    while True:
-        poli = input("Pilih poli (1/2/3/4): ")
-        if poli in poli_dict:
-            poli_name, keluhan_list = poli_dict[poli]
-            break
-        else:
-            print("Pilihan poli tidak valid!")
-
-    print(f"=====POLI {poli_name.upper()}=====")
-    for i, keluhan_item in enumerate(keluhan_list, start=1):
-        print(f"{i}. {keluhan_item}")
-
-    while True:
-        try:
-            pilih_keluhan = int(input("Masukkan pilihan keluhan (1/2/3): ")) - 1
-            keluhan = keluhan_list[pilih_keluhan]
-            break
-        except (ValueError, IndexError):
-            print("Pilihan harus benar!")
-
     obat_resep = {
         "Gigi berlubang": "Ibuprofen",
         "Sariawan": "Antibiotik",
@@ -626,9 +612,47 @@ def tambah_pasien2():
         "Diare": "Oralit",
     }
 
+    while True:
+        poli = input("Pilih poli (1/2/3/4): ")
+        if poli in poli_dict:
+            poli_name, keluhan_list = poli_dict[poli]
+            # Periksa ketersediaan dokter di poli tersebut
+            try:
+                dokter_data = pd.read_csv(TEMPLATE["dokter"])
+            except FileNotFoundError:
+                print("File dokter.csv tidak ditemukan.")
+                return
+
+            if not dokter_data[dokter_data["Poli"] == poli_name].empty:
+                break
+            else:
+                print(f"Dokter pada {poli_name} tidak tersedia.")
+                print("1. Pilih poli lain")
+                print("2. Batalkan penambahan pasien")
+                opsi = input("Pilih opsi (1/2): ")
+                if opsi == "1":
+                    continue
+                elif opsi == "2":
+                    return  # Kembali tanpa menambahkan pasien
+                else:
+                    print("Pilihan tidak valid!")
+        else:
+            print("Pilihan poli tidak valid!")
+
+    print(f"=====POLI {poli_name.upper()}=====")
+    for i, keluhan_item in enumerate(keluhan_list, start=1):
+        print(f"{i}. {keluhan_item}")
+
+    while True:
+        try:
+            pilih_keluhan = int(input("Masukkan pilihan keluhan (1/2/3): ")) - 1
+            keluhan = keluhan_list[pilih_keluhan]
+            break
+        except (ValueError, IndexError):
+            print("Pilihan harus benar!")
+
     obat = obat_resep.get(keluhan, "Tidak diketahui")
 
-    # Menanyakan apakah pasien membutuhkan rawat inap
     print("\nApakah pasien membutuhkan rawat inap?")
     print("1. Ya")
     print("2. Tidak")
@@ -649,36 +673,24 @@ def tambah_pasien2():
             except (ValueError, IndexError):
                 print("Pilihan tidak valid!")
 
-        # Menyimpan informasi ke ruang.csv
-        with open(TEMPLATE["ruang"], "a", newline="") as f:
+    # Menambahkan ke file CSV
+    try:
+        with open(TEMPLATE["pasien"], "a", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow([ruang, nama])
-    elif rawat_inap == "2":
-        ruang = "Tidak membutuhkan rawat inap"
-    else:
-        print("Pilihan tidak valid, dianggap tidak membutuhkan rawat inap.")
+            writer.writerow([nama, umur, alamat, poli_name, keluhan, ruang, obat])
 
-    # Menambahkan ke file pasien.CSV
-    with open(TEMPLATE["pasien"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([nama, umur, alamat, poli_name, keluhan, ruang, obat])
+        with open(TEMPLATE["antrian"], "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([poli_name, nama])
 
-    # Menambahkan pasien ke antrean
-    with open(TEMPLATE["antrian"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([poli_name, nama])
+        with open(TEMPLATE["resep"], "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([nama, obat])
 
+        print("Pasien berhasil ditambahkan!")
+    except Exception as e:
+        print(f"Terjadi kesalahan saat menyimpan data: {e}")
 
-    # Menyimpan resep obat berdasarkan keluhan
-    with open(TEMPLATE["resep"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([nama, obat])
-
-    with open(TEMPLATE["riwayat"], "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([nama, keluhan, obat])
-
-    print("Pasien berhasil ditambahkan!")
     kembali_kePengguna()
 
 
